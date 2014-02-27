@@ -172,7 +172,7 @@ public class mineGUI extends JFrame implements ActionListener{
 		
 		
 		
-		
+		countAdjacentMines();
 		
 		
 		
@@ -186,6 +186,66 @@ public class mineGUI extends JFrame implements ActionListener{
 		
 	
 	}
+	
+	private void doClear(button[][] mineButtons, int x, int y) {
+		System.out.println("x:" + x + " y:" + y);
+		if (x < 0 || x >= 10 || y < 0 || y >= 10) {
+			return;
+		}
+		button currButton = mineButtons[x][y];
+		if (!currButton.isEnabled()) {
+			return;
+		}
+
+		currButton.setBackground(Color.lightGray);
+		currButton.setEnabled(false);
+
+		if (mineButtons[x][y].getBomb() == 1) {
+			currButton.setText("X");
+			System.out.println("clicked on button with bomb, exiting...");
+			// end game
+		} else {
+			if (mineButtons[x][y].getAdjacentBombs() != 0)
+				mineButtons[x][y].setText(mineButtons[x][y]
+						.getAdjacentBombsString());
+			else
+				mineButtons[x][y].setText(" ");
+
+			if (currButton.getAdjacentBombs() == 0) {
+				doClear(mineButtons, x - 1, y - 1); // top left
+				doClear(mineButtons, x, y - 1); // top middle
+				doClear(mineButtons, x + 1, y - 1); // top right
+				doClear(mineButtons, x - 1, y); // mid left
+				doClear(mineButtons, x + 1, y); // mid right
+				doClear(mineButtons, x - 1, y + 1); // bot left
+				doClear(mineButtons, x, y + 1); // bot middle
+				doClear(mineButtons, x + 1, y + 1); // bot right
+			}
+		}
+	}
+
+	private void countAdjacentMines() {
+		// TO DO: STUDENT CODE HERE
+		for (int i = 0; i < 10; i++) {
+			for (int j = 0; j < 10; j++) {
+				if (mineButtons[i][j].getBomb() != 1) {
+					int count = 0;
+					for (int p = i - 1; p <= i + 1; p++) {
+						for (int q = j - 1; q <= j + 1; q++) {
+							if (0 <= p && p < mineButtons.length && 0 <= q
+									&& q < mineButtons.length) {
+								if (mineButtons[p][q].getBomb() == 1)
+									count++;
+							} // end if
+						} // end for
+					} // end for
+
+					mineButtons[i][j].setAdjacentBombs(count);
+				} // end if
+
+			} // end for loop rows
+		} // end for loop columns
+	} // end setAdjacentBombs
 	
 	
 	
@@ -276,7 +336,7 @@ public class mineGUI extends JFrame implements ActionListener{
 					currButton.setState(0);
 				}
 				else{
-					System.out.println("Problem here");
+					System.out.println("Problem here-Right Mouseclick");
 				}
 				
 				
@@ -284,15 +344,36 @@ public class mineGUI extends JFrame implements ActionListener{
 			}
 			
 			else if(SwingUtilities.isLeftMouseButton(e)){
-				//start your code here(probably by casting the MouseEvent to a button)
+				
+				button currButton = (button) e.getSource();
+				// if the button hasn't been grayed out, do these actions
+				if (currButton.getBackground() != Color.lightGray) {
+					if (currButton.getState() == 1
+							|| currButton.getState() == 2) {
+						// already "M", do nothing
+						System.out
+								.println("pressed on button that's already marked as bomb, no action done.");
+					} else if (currButton.getState() == 0) {
+						doClear(mineButtons, currButton.getXcoord(),
+								currButton.getYcoord());
+					} else {
+						System.out.println("Problem here");
+					}
+				}
+
+				else {
+					System.out.println("Problem Here in Left Mouse click");
+				}
+			}
+			// else, do nothing
+			else {
+				System.out
+						.println("user clicked a grayed out button, does nothing");
+			}
 			}
 			
-			else{
-				System.out.println("Problem Here");
-			}
 			
-			
-		}
+		
 
 		@Override
 		public void mouseReleased(MouseEvent e) {

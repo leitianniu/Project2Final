@@ -11,6 +11,9 @@ public class button extends JButton{
 	
 	
 	int xCoord=-1;
+	
+	
+	
 	public void setXcoord(int x){
 		xCoord=x;
 	}
@@ -56,8 +59,8 @@ public class button extends JButton{
 	}
 	
 	int adjacent=0;
-	public void setAdjacentBombs(){
-		adjacent=adjacent+1;
+	public void setAdjacentBombs(int n){
+		adjacent=n;
 	}
 	
 	public int getAdjacentBombs(){
