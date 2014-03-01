@@ -42,7 +42,7 @@ public class mine {
 	public void incMines() {
 		currentMines = currentMines + 1;
 	}
-	
+
 	public void resetMines() {
 		currentMines = 10;
 	}
@@ -50,15 +50,19 @@ public class mine {
 	public int getCurrentMines() {
 		return currentMines;
 	}
-	
+
+	public void setCurrentMinesZero() {
+		currentMines = 0;
+	}
+
 	public void incCleared() {
 		clearedButtons = clearedButtons + 1;
 	}
-	
+
 	public int getCleared() {
 		return clearedButtons;
 	}
-	
+
 	public void resetCleared() {
 		clearedButtons = 0;
 	}

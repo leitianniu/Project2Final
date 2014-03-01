@@ -1,5 +1,6 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
 
 import javax.swing.*;
 
@@ -12,7 +13,7 @@ public class mineGUI extends JFrame implements ActionListener {
 	private JOptionPane dialogs;
 	private JMenuBar topMenu;
 	private JMenu gameMenu, hMenu;
-	private JMenuItem gReset, gTopTen, gExit, hHelp, hAbout;
+	private JMenuItem gReset, gTopTen, gClearHS, gExit, hHelp, hAbout;
 	private mine mines = new mine();
 	private int[] mineLocs = new int[10];
 	private JButton resetButton;
@@ -20,21 +21,23 @@ public class mineGUI extends JFrame implements ActionListener {
 	private int currTime;
 	private Timer time;
 	private int numLClicks = 0;
+	private scoreBoard scoreboard;
 
-	public mineGUI() {
+	public mineGUI() throws ClassNotFoundException, IOException {
 
 		super("Minesweeper");// set up new JFrame for game
 		setSize(480, 720);// set game size to 480x720
 
 		initUI();
 		initMines();
+		initScoreBoard();
 
 		// create timer to keep track of game time
 		int delay = 1000;
 		time = new Timer(delay, new timeInfo());
 	}
 
-	final void initUI() {
+	final void initUI() throws ClassNotFoundException, IOException {
 		topMenu = new JMenuBar();// create menu bar
 		setJMenuBar(topMenu);// set menu bar on frame
 
@@ -61,6 +64,13 @@ public class mineGUI extends JFrame implements ActionListener {
 		gTopTen.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T,
 				ActionEvent.ALT_MASK));
 		gTopTen.addActionListener(this);
+
+		gClearHS = new JMenuItem("Clear High Scores");
+		gameMenu.add(gClearHS);
+		gClearHS.setMnemonic(KeyEvent.VK_C);
+		gClearHS.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C,
+				ActionEvent.ALT_MASK));
+		gClearHS.addActionListener(this);
 		gameMenu.addSeparator();
 
 		gExit = new JMenuItem("Exit");
@@ -156,6 +166,13 @@ public class mineGUI extends JFrame implements ActionListener {
 		countAdjacentMines();
 	}
 
+	public void initScoreBoard() throws ClassNotFoundException, IOException {
+		scoreboard = new scoreBoard();
+
+		// test score board
+		scoreboard.addHighScore("Empty", 59940);
+	}
+
 	public void resetMineLocs() {
 		mineLocs = new int[10];
 	}
@@ -186,30 +203,33 @@ public class mineGUI extends JFrame implements ActionListener {
 		initMines();
 
 	}
-	
-	public void endGameCheck(){
+
+	public void endGameCheck() {
 		int realMinesMarked = 0;
-		if (mines.getCurrentMines() == 0) {
-			for (int i = 0; i < 10; i++) {
-				for (int j = 0; j < 10; j++) {
-					if (mineButtons[i][j].getIsBomb() == true && (mineButtons[i][j].getText()).equals("M")) {
-						System.out.println("bomb at row:"+i+" col: "+j+" is successfully marked");
-						realMinesMarked = realMinesMarked + 1;
-					}
-				} // end for loop rows
-			} // end for loop columns
-		}
-		else {
-			System.err.println("Error: fake clear encountered: 90 buttons cleared but the marked one aren't real bombs");
-		}
-		System.out.println("there are "+realMinesMarked+" real bombs marked");
-		if (realMinesMarked == 10) {
+		if (mines.getCleared() == 90) {
+			// for (int i = 0; i < 10; i++) {
+			// for (int j = 0; j < 10; j++) {
+			// if (mineButtons[i][j].getIsBomb() == true
+			// && (mineButtons[i][j].getText()).equals("M")) {
+			// System.out.println("bomb at row:" + i + " col: " + j
+			// + " is successfully marked");
+			// realMinesMarked = realMinesMarked + 1;
+			// }
+			// } // end for loop rows
+			// } // end for loop columns
+			// } else {
+			// System.out
+			// .println("Error: fake clear encountered: 90 buttons cleared but the marked one aren't real bombs");
+			// }
+			// System.out.println("there are " + realMinesMarked
+			// + " real bombs marked");
+			// if (realMinesMarked == 10) {
 			System.out.println("player won!");
-			endGame(90, realMinesMarked, false);
+			endGame(90, false);
 		}
 	}
 
-	public void endGame(int buttonsCleared, int mineFound, boolean bombExploded) {
+	public void endGame(int buttonsCleared, boolean bombExploded) {
 		// if player lost
 		if (bombExploded == true) {
 			// first stop the timer
@@ -226,26 +246,64 @@ public class mineGUI extends JFrame implements ActionListener {
 									+ "\nThanks for playing \nIf you would like to play another game, please press reset.");
 		} else if (bombExploded == false) {
 			// player won this game
-			if (buttonsCleared == 90 && mineFound == 10) {
+			// if (buttonsCleared == 90 && mineFound == 10) {
+			if (buttonsCleared == 90) {
 				// here is when the player clears the game
 				// first stop the timer
 				time.stop();
 
-				// then reveal all bombs
-				revealMines();
+				// then mark all bombs
+				markAllMines();
 
 				// then display the message, and close all listeners
-				JOptionPane.showMessageDialog(boardContainer,
-						"Congratulations, you won the game! \nTime elapsed: "
-								+ getTimeElapsed()
-								+ "\nThank you for playing :)");
+
+				// we check the user's clear time against the 10th highest score
+				// if the player's clear time is faster
+				// prompt user to enter the name to be recorded onto the Top Ten
+				if (currTime < scoreboard.getHighScores() || scoreboard.getSize() < 10) {
+					String name = new String();
+					name = JOptionPane.showInputDialog(gameMenu,
+							"Congratulations, you beat a high score! \nTime elapsed: "
+									+ getTimeElapsed()
+									+ "\nThank you for playing :)",
+							"High Score!", NORMAL);
+					if (name.isEmpty()) {
+						name = new String("Guest");
+					}
+					// add to the top ten
+					if (scoreboard.getHighestScore().equals("Empty")) {
+						try {
+							scoreboard.clearHighScores();
+							scoreboard.load();
+						} catch (Exception e) {
+						}
+					}
+					try {
+						scoreboard.load();
+						scoreboard.addHighScore(name, currTime);
+						scoreboard.load();
+					} catch (ClassNotFoundException e) {
+						System.out
+								.println("ClassNotFoundException in endGame()");
+					} catch (IOException e) {
+						System.out.println("IOException in endGame()");
+					}
+
+				} 
+				else {
+					JOptionPane.showMessageDialog(boardContainer,
+							"Congratulations, you won the game! \nTime elapsed: "
+									+ getTimeElapsed()
+									+ "\nThank you for playing :)");
+				}
+
 			}
 		} else
 			System.out.println("Error occured in end-game method");
 
 	}
 
-	private void doClear(button[][] mineButtons, int x, int y) {
+	private void doClear(button[][] mineButtons, int x, int y) throws Exception {
 		System.out.println("x:" + x + " y:" + y);
 		if (x < 0 || x >= 10 || y < 0 || y >= 10) {
 			return;
@@ -264,7 +322,7 @@ public class mineGUI extends JFrame implements ActionListener {
 			currButton.setText("X");
 			// currButton.setIconImage("mineRed.png");
 
-			endGame(0, 0, true);
+			endGame(0, true);
 
 			System.out.println("clicked on button with bomb, exiting...");
 			// end game
@@ -272,14 +330,13 @@ public class mineGUI extends JFrame implements ActionListener {
 			// every time when a button is "cleared", increment variable
 			mines.incCleared();
 			// check if player has won the game if 90 buttons are cleared
-			System.out.println("currently, number of buttosn cleared: " + mines.getCleared());
+			System.out.println("currently, number of buttosn cleared: "
+					+ mines.getCleared());
 			if (mines.getCleared() == 90) {
 				System.out.println("commencing end game check");
 				endGameCheck();
 			}
 
-			
-			
 			if (mineButtons[x][y].getAdjacentBombs() != 0) {
 				// if (mineButtons[x][y].getAdjacentBombs() == 1) {
 				// currButton.setForeground(Color.BLUE);
@@ -342,10 +399,22 @@ public class mineGUI extends JFrame implements ActionListener {
 		} // end for loop columns
 	} // end method
 
-	// this class implements the time keeping requirement for the program
-	// the game starts keeping time once a left button is clicked,
-	// the time is set to display in the format min:second
-	// time is incremented each second and displayed
+	private void markAllMines() {
+		for (int i = 0; i < 10; i++) {
+			for (int j = 0; j < 10; j++) {
+				if (mineButtons[i][j].getIsBomb() == true) {
+					mineButtons[i][j].setText("M");
+					mines.setCurrentMinesZero();
+				}
+				mineButtons[i][j].setState(9);
+			} // end for loop rows
+		} // end for loop columns
+	} // end method
+		// this class implements the time keeping requirement for the program
+		// the game starts keeping time once a left button is clicked,
+		// the time is set to display in the format min:second
+		// time is incremented each second and displayed
+
 	private class timeInfo implements ActionListener {
 
 		public void actionPerformed(ActionEvent a) {
@@ -380,8 +449,31 @@ public class mineGUI extends JFrame implements ActionListener {
 		}
 
 		else if (e.getSource() == gTopTen) {
-			System.out.println("Top Ten");
-		} else if (e.getSource() == gExit) {
+			try {
+				scoreboard.load();
+			} catch (ClassNotFoundException e1) {
+				System.out.println("ClassNotFoundException in e.getSource() == gTopTen");
+			} catch (IOException e1) {
+				System.out.println("IOException in e.getSource() == gTopTen");
+			}
+			JOptionPane.showMessageDialog(mineGUI.this,
+					scoreboard.printHighScores(scoreboard),
+					"Top 10 High Scores", JOptionPane.PLAIN_MESSAGE);
+		} else if (e.getSource() == gClearHS) {
+			try {
+				scoreboard.clearHighScores();
+				scoreboard.load();
+				scoreboard.addHighScore("Empty", 59940);
+				scoreboard.load();
+			} catch (Exception e1) {
+				System.out
+						.println("Error: Couldn't clear high score from menu");
+			}
+			JOptionPane.showMessageDialog(mineGUI.this, "High scores cleared!",
+					"Top 10 High Scores", JOptionPane.PLAIN_MESSAGE);
+		}
+
+		else if (e.getSource() == gExit) {
 			System.out.println("Exit");
 			System.exit(0);
 		} else if (e.getSource() == hHelp) {
@@ -445,6 +537,7 @@ public class mineGUI extends JFrame implements ActionListener {
 					if (mines.getCurrentMines() != 0) {
 						currButton.setText("M");
 						mines.decMines();
+						endGameCheck();
 					}
 
 					buttonsLeft
@@ -461,9 +554,12 @@ public class mineGUI extends JFrame implements ActionListener {
 							&& (currButton.getText()).equals("M")) {
 						mines.incMines();
 					} else {
-						JOptionPane.showMessageDialog(mineGUI.this,
-								"You may only mark 10 buttons as bombs at most. \nTo mark another button as a bomb, please cancel \na flag from another button first.", "Too many flags",
-								JOptionPane.PLAIN_MESSAGE);
+						JOptionPane
+								.showMessageDialog(
+										mineGUI.this,
+										"You may only mark 10 buttons as bombs at most. \nTo mark another button as a bomb, please cancel \na flag from another button first.",
+										"Too many flags",
+										JOptionPane.PLAIN_MESSAGE);
 					}
 
 					currButton.setText("?");
@@ -507,15 +603,18 @@ public class mineGUI extends JFrame implements ActionListener {
 						System.out
 								.println("pressed on button that's already marked as bomb, no action done.");
 					} else if (currButton.getState() == 0) {
-						doClear(mineButtons, currButton.getXcoord(),
-								currButton.getYcoord());
+						try {
+							doClear(mineButtons, currButton.getXcoord(),
+									currButton.getYcoord());
+						} catch (Exception e1) {
+						}
 					} else {
 						System.out.println("Problem here");
 					}
 				}
 
 				else {
-					System.out.println("Problem Here in Left Mouse click");
+					//System.out.println("Problem Here in Left Mouse click");
 				}
 			}
 			// else, do nothing
