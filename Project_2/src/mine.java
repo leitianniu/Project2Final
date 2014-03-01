@@ -1,3 +1,13 @@
+//******************
+//CS 342 Project Two-Minesweeper
+//Authors
+//Tianniu Lei
+//Ryan Szymkiewicz
+//mine.java
+//This file contains methods related to the mines
+//get 10 mine positions and decrement/increment how many mines are found
+//******************
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;

@@ -1,3 +1,16 @@
+//******************
+//CS 342 Project Two-Minesweeper
+//Authors
+//Tianniu Lei
+//Ryan Szymkiewicz
+//mineGUI.java
+//this file contains the bulk of the game
+//the interface UI is contained in this file along
+//with the algorithm for determining and filling mine squares
+//parts of this code (GUI related) were influenced by code posted by
+//Prof. Troy and also from the Java Swing GUI Tutorials
+//******************
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
@@ -260,7 +273,8 @@ public class mineGUI extends JFrame implements ActionListener {
 				// we check the user's clear time against the 10th highest score
 				// if the player's clear time is faster
 				// prompt user to enter the name to be recorded onto the Top Ten
-				if (currTime < scoreboard.getHighScores() || scoreboard.getSize() < 10) {
+				if (currTime < scoreboard.getHighScores()
+						|| scoreboard.getSize() < 10) {
 					String name = new String();
 					name = JOptionPane.showInputDialog(gameMenu,
 							"Congratulations, you beat a high score! \nTime elapsed: "
@@ -289,8 +303,7 @@ public class mineGUI extends JFrame implements ActionListener {
 						System.out.println("IOException in endGame()");
 					}
 
-				} 
-				else {
+				} else {
 					JOptionPane.showMessageDialog(boardContainer,
 							"Congratulations, you won the game! \nTime elapsed: "
 									+ getTimeElapsed()
@@ -452,7 +465,8 @@ public class mineGUI extends JFrame implements ActionListener {
 			try {
 				scoreboard.load();
 			} catch (ClassNotFoundException e1) {
-				System.out.println("ClassNotFoundException in e.getSource() == gTopTen");
+				System.out
+						.println("ClassNotFoundException in e.getSource() == gTopTen");
 			} catch (IOException e1) {
 				System.out.println("IOException in e.getSource() == gTopTen");
 			}
@@ -614,7 +628,7 @@ public class mineGUI extends JFrame implements ActionListener {
 				}
 
 				else {
-					//System.out.println("Problem Here in Left Mouse click");
+					// System.out.println("Problem Here in Left Mouse click");
 				}
 			}
 			// else, do nothing

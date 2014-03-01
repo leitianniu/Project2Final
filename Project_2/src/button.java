@@ -1,3 +1,14 @@
+//******************
+//CS 342 Project Two-Minesweeper
+//Authors
+//Tianniu Lei
+//Ryan Szymkiewicz
+//button.java
+//The button.java class extends JButton,  and functions as the mine
+//buttons for the minesweeper program.  By creating a new button instead of
+//using JButtons,  we are able to add a greater amount of control and functionality
+//******************
+
 import java.awt.*;
 
 import javax.swing.*;
